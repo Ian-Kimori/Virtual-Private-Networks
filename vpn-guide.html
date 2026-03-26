@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VPN — Complete Technical Reference</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f12;
+    --bg2: #141720;
+    --bg3: #1c2030;
+    --card: #181c25;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #e2e4ec;
+    --muted: #7a7f94;
+    --accent: #4fffb0;
+    --accent2: #00bfff;
+    --accent3: #ff6b6b;
+    --amber: #ffb347;
+    --purple: #a78bfa;
+    --teal: #2dd4bf;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.75;
+    font-weight: 300;
+  }
+
+  /* noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  .wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 2rem 6rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 5rem 0 3rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 3.5rem;
+  }
+
+  .hero-label {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+  }
+
+  .hero-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, var(--accent), transparent);
+    max-width: 120px;
+    opacity: 0.5;
+  }
+
+  h1 {
+    font-family: var(--mono);
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    color: #fff;
+    margin-bottom: 1.2rem;
+  }
+
+  h1 span { color: var(--accent); }
+
+  .hero-sub {
+    font-size: 1.05rem;
+    color: var(--muted);
+    max-width: 520px;
+    line-height: 1.7;
+  }
+
+  /* ── SECTIONS ── */
+  section { margin-bottom: 4rem; }
+
+  h2 {
+    font-family: var(--mono);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  h2::before {
+    content: '//';
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  h3 {
+    font-family: var(--mono);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--accent2);
+    margin: 2.2rem 0 0.7rem;
+  }
+
+  p { margin-bottom: 1rem; color: var(--text); }
+
+  strong { font-weight: 500; color: #fff; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.6rem 1.8rem;
+    margin-bottom: 1.2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(to right, var(--accent), transparent);
+    opacity: 0.6;
+  }
+
+  .card h3 { margin-top: 0; }
+
+  /* ── DIAGRAM CONTAINER ── */
+  .diagram-wrap {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    overflow-x: auto;
+  }
+
+  .diagram-label {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .diagram-label::before {
+    content: '▶';
+    font-size: 0.55rem;
+    color: var(--accent);
+  }
+
+  .diagram-wrap svg { max-width: 100%; height: auto; display: block; }
+
+  /* SVG styles injected for diagrams */
+  .diagram-wrap .t  { font-family: var(--sans); font-size: 14px; font-weight: 400; fill: var(--text); }
+  .diagram-wrap .ts { font-family: var(--sans); font-size: 12px; font-weight: 400; fill: var(--muted); }
+  .diagram-wrap .th { font-family: var(--sans); font-size: 14px; font-weight: 500; fill: var(--text); }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; margin: 1.5rem 0; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+
+  thead tr {
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border2);
+  }
+
+  th {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    padding: 0.8rem 1rem;
+    text-align: left;
+    font-weight: 500;
+  }
+
+  td {
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: top;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .ok { color: var(--accent); font-weight: 500; }
+  .warn { color: var(--amber); font-weight: 500; }
+  .bad { color: var(--accent3); font-weight: 500; }
+  .na { color: var(--muted); }
+
+  /* ── CALLOUT ── */
+  .callout {
+    border-left: 3px solid var(--accent3);
+    background: rgba(255,107,107,0.06);
+    padding: 1rem 1.3rem;
+    border-radius: 0 8px 8px 0;
+    margin: 1.5rem 0;
+    font-size: 0.95rem;
+  }
+
+  .callout.info {
+    border-color: var(--accent2);
+    background: rgba(0,191,255,0.05);
+  }
+
+  .callout.tip {
+    border-color: var(--accent);
+    background: rgba(79,255,176,0.05);
+  }
+
+  .callout strong { display: block; margin-bottom: 0.3rem; font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; }
+
+  .callout.info strong { color: var(--accent2); }
+  .callout.tip strong { color: var(--accent); }
+  .callout strong.warn-label { color: var(--accent3); }
+
+  /* ── PILL BADGES ── */
+  .badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.2em 0.6em;
+    border-radius: 4px;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+  }
+
+  .badge-green { background: rgba(79,255,176,0.12); color: var(--accent); border: 1px solid rgba(79,255,176,0.25); }
+  .badge-red   { background: rgba(255,107,107,0.12); color: var(--accent3); border: 1px solid rgba(255,107,107,0.25); }
+  .badge-amber { background: rgba(255,179,71,0.12); color: var(--amber); border: 1px solid rgba(255,179,71,0.25); }
+
+  /* ── PROTO GRID ── */
+  .proto-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+
+  .proto-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.2rem;
+  }
+
+  .proto-card .proto-name {
+    font-family: var(--mono);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--accent2);
+    margin-bottom: 0.4rem;
+  }
+
+  .proto-card .proto-layer {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+  }
+
+  .proto-card p { font-size: 0.88rem; color: var(--muted); margin: 0; }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding-top: 2rem;
+    margin-top: 4rem;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  /* ── SVG COLOUR HELPERS (light-mode values baked in for file portability) ── */
+  .sv-blue-fill   { fill: #1a3a5c; }
+  .sv-blue-stroke { stroke: #378ADD; }
+  .sv-blue-text   { fill: #B5D4F4; }
+  .sv-teal-fill   { fill: #083028; }
+  .sv-teal-stroke { stroke: #1D9E75; }
+  .sv-teal-text   { fill: #9FE1CB; }
+  .sv-coral-fill  { fill: #3a180e; }
+  .sv-coral-stroke{ stroke: #D85A30; }
+  .sv-coral-text  { fill: #F5C4B3; }
+  .sv-gray-fill   { fill: #232322; }
+  .sv-gray-stroke { stroke: #5F5E5A; }
+  .sv-gray-text   { fill: #B4B2A9; }
+  .sv-amber-fill  { fill: #2a1c06; }
+  .sv-amber-stroke{ stroke: #BA7517; }
+  .sv-amber-text  { fill: #FAC775; }
+  .sv-red-fill    { fill: #2c0f0f; }
+  .sv-red-stroke  { stroke: #A32D2D; }
+  .sv-red-text    { fill: #F7C1C1; }
+  .sv-arr         { stroke: rgba(255,255,255,0.25); fill: none; }
+  .sv-bg          { fill: rgba(255,255,255,0.04); stroke: rgba(255,255,255,0.12); }
+  .sv-dashed      { stroke: rgba(255,255,255,0.2); fill: none; stroke-dasharray: 4 3; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="hero-label">Security Reference Document</div>
+    <h1>Virtual Private<br><span>Networks</span></h1>
+    <p class="hero-sub">A complete technical breakdown of VPN architecture, all major protocols, and how types and mechanisms relate — end to end.</p>
+  </header>
+
+  <!-- SECTION 1: What is a VPN -->
+  <section>
+    <h2>What a VPN actually is</h2>
+    <p>A VPN (Virtual Private Network) creates an <strong>encrypted tunnel</strong> between two endpoints over an untrusted network (typically the internet). The core job is three things: <strong>encapsulation</strong> (wrapping your traffic in a new packet), <strong>encryption</strong> (making the payload unreadable to outsiders), and <strong>authentication</strong> (proving both sides are who they claim to be).</p>
+    <p>The "virtual" part is key — you're building a logical private link over public infrastructure. The "private" part means confidentiality, integrity, and (usually) anonymity from the transport layer's perspective.</p>
+
+    <div class="callout info">
+      <strong>Core distinction</strong>
+      <strong>VPN type</strong> = the <em>architecture</em> — what two things are being connected, and why.<br>
+      <strong>VPN protocol</strong> = the <em>mechanism</em> — how the tunnel is built, secured, and maintained.<br><br>
+      Any type can use multiple protocols. The type answers <em>"what are we connecting?"</em>; the protocol answers <em>"how do we build the tunnel?"</em>
+    </div>
+  </section>
+
+  <!-- SECTION 2: Overview diagram -->
+  <section>
+    <h2>Full landscape overview</h2>
+    <div class="diagram-wrap">
+      <div class="diagram-label">Types and protocols — structural overview</div>
+      <svg width="100%" viewBox="0 0 680 560" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arr1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+        <!-- Title -->
+        <text font-family="IBM Plex Mono, monospace" font-size="13" font-weight="500" fill="#e2e4ec" x="340" y="30" text-anchor="middle">VPN types and protocols</text>
+        <!-- Type section label -->
+        <text font-family="IBM Plex Sans, sans-serif" font-size="11" fill="#7a7f94" letter-spacing="2" x="40" y="56">VPN TYPES (architecture)</text>
+        <!-- Type boxes -->
+        <g>
+          <rect x="40" y="65" width="140" height="54" rx="7" class="sv-blue-fill sv-blue-stroke" stroke-width="0.7"/>
+          <text font-family="IBM Plex Sans, sans-serif" font-size="13" font-weight="500" class="sv-blue-text" x="110" y="88" text-anchor="middle" dominant-baseline="central">Remote access</text>
+          <text font-family="IBM Plex Sans, sans-serif" font-size="11" class="sv-blue-text" x="110" y="107" text-anchor="middle" fill="#5a8fbf">User → corporate</text>
+        </g>
+        <g>
+          <rect x="196" y="65" width="140" height="54" rx="7" class="sv-blue-fill sv-blue-stroke" stroke-width="0.7"/>
+          <text font-family="IBM Plex Sans, sans-serif" font-size="13" font-weight="500" class="sv-blue-text" x="266" y="88" text-anchor="middle" dominant-baseline="central">Site-to-site</text>
+          <text font-family="IBM Plex Sans, sans-serif" font-size="11" class="sv-blue-text" x="266" y="107" text-anchor="middle" fill="#5a8fbf">Network ↔ Network</text>
+        </g>
+        <g>
+          <rect x="352" y="65" width="140" height="54" rx="7" class="sv-blue-fill sv-blue-stroke" stroke-width="0.7"/>
+          <text font-family="IBM Plex Sans, sans-serif" font-size="13" font-weight="500" class="sv-blue-text" x="422" y="88" text-anchor="middle" dominant-baseline="central">MPLS / Cloud</text>
+          <text font-family="IBM Plex Sans, sans-serif" font-size="11" class="sv-blue-text" x="422" y="107" text-anchor="middle" fill="#5a8fbf">Provider-managed WAN</text>
+        </g>
+        <g>
+          <rect x="508" y="65" width="150" height="54" rx="7" class="sv-blue-fill sv-blue-stroke" stroke-width="0.7"/>
+          <text font-family="IBM Plex Sans, sans-serif" font-size="13" font-weight="500" class="sv-blue-text" x="583" y="88" text-anchor="middle" dominant-baseline="central">Mesh / Zero Trust</text>
+          <text font-family="IBM Plex Sans, sans-serif" font-size="11" class="sv-blue-text" x="583" y="107" text-anchor="middle" fill="#5a8fbf">Peer-to-peer overlay</text>
+        </g>
+        <!-- Divider bar -->
+        <rect x="40" y="150" width="618" height="34" rx="7" class="sv-gray-fill sv-gray-stroke" stroke-width="0.7"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="13" font-weight="500" class="sv-gray-text" x="349" y="170" text-anchor="middle" dominant-baseline="central">Encrypted tunnel — the "virtual private" part</text>
+        <!-- Arrows type → divider -->
+        <line x1="110" y1="119" x2="110" y2="148" stroke="rgba(255,255,255,0.2)" stroke-width="1" marker-end="url(#arr1)"/>
+        <line x1="266" y1="119" x2="266" y2="148" stroke="rgba(255,255,255,0.2)" stroke-width="1" marker-end="url(#arr1)"/>
+        <line x1="422" y1="119" x2="422" y2="148" stroke="rgba(255,255,255,0.2)" stroke-width="1" marker-end="url(#arr1)"/>
+        <line x1="583" y1="119" x2="583" y2="148" stroke="rgba(255,255,255,0.2)" stroke-width="1" marker-end="url(#arr1)"/>
+        <line x1="349" y1="184" x2="349" y2="210" stroke="rgba(255,255,255,0.2)" stroke-width="1" marker-end="url(#arr1)"/>
+        <!-- Protocol section label -->
+        <text font-family="IBM Plex Sans, sans-serif" font-size="11" fill="#7a7f94" letter-spacing="2" x="40" y="224">VPN PROTOCOLS (mechanism)</text>
+        <!-- L3 label -->
+        <text font-family="IBM Plex Sans, sans-serif" font-size="11" fill="#7a7f94" x="40" y="246">Layer 3 / network</text>
+        <!-- IPsec -->
+        <g>
+          <rect x="40" y="252" width="120" height="54" rx="7" class="sv-teal-fill sv-teal-stroke" stroke-width="0.7"/>
+          <text font-family="IBM Plex Sans, sans-serif" font-size="13" font-weight="500" class="sv-teal-text" x="100" y="273" text-anchor="middle" dominant-baseline="central">IPsec</text>
+          <text font-family="IBM Plex Sans, sans-serif" font-size="11" class="sv-teal-text" x="100" y="291" text-anchor="middle" fill="#4a9980">IKEv2 + ESP/AH</text>
+        </g>
+        <!-- GRE -->
+        <g>
+          <rect x="170" y="252" width="120" height="54" rx="7" class="sv-teal-fill sv-teal-stroke" stroke-width="0.7"/>
+          <text font-family="IBM Plex Sans, sans-serif" font-size="13" font-weight="500" class="sv-teal-text" x="230" y="273" text-anchor="middle" dominant-baseline="central">GRE</text>
+          <text font-family="IBM Plex Sans, sans-serif" font-size="11" class="sv-teal-text" x="230" y="291" text-anchor="middle" fill="#4a9980">Encapsulation only</text>
+        </g>
+        <!-- L2TP -->
+        <g>
+          <rect x="300" y="252" width="120" height="54" rx="7" class="sv-teal-fill sv-teal-stroke" stroke-width="0.7"/>
+          <text font-family="IBM Plex Sans, sans-serif" font-size="13" font-weight="500" class="sv-teal-text" x="360" y="273" text-anchor="middle" dominant-baseline="central">L2TP/IPsec</text>
+          <text font-family="IBM Plex Sans, sans-serif" font-size="11" class="sv-teal-text" x="360" y="291" text-anchor="middle" fill="#4a9980">L2 over L3 tunnel</text>
+        </g>
+        <!-- WireGuard -->
+        <g>
+          <rect x="430" y="252" width="120" height="54" rx="7" class="sv-teal-fill sv-teal-stroke" stroke-width="0.7"/>
+          <text font-family="IBM Plex Sans, sans-serif" font-size="13" font-weight="500" class="sv-teal-text" x="490" y="273" text-anchor="middle" dominant-baseline="central">WireGuard</text>
+          <text font-family="IBM Plex Sans, sans-serif" font-size="11" class="sv-teal-text" x="490" y="291" text-anchor="middle" fill="#4a9980">Modern, ChaCha20</text>
+        </g>
+        <!-- Hybrid badge -->
+        <g>
+          <rect x="562" y="252" width="96" height="54" rx="7" class="sv-amber-fill sv-amber-stroke" stroke-width="0.7"/>
+          <text font-family="IBM Plex Sans, sans-serif" font-size="11" font-weight="500" class="sv-amber-text" x="610" y="272" text-anchor="middle" dominant-baseline="central">Hybrid</text>
+          <text font-family="IBM Plex Sans, sans-serif" font-size="11" class="sv-amber-text" x="610" y="290" text-anchor="middle" fill="#a06010">L3 / L4</text>
+        </g>
+        <!-- L4-7 label -->
+        <text font-family="IBM Plex Sans, sans-serif" font-size="11" fill="#7a7f94" x="40" y="330">Layer 4–7 / application</text>
+        <!-- OpenVPN -->
+        <g>
+          <rect x="40" y="336" width="120" height="54" rx="7" class="sv-coral-fill sv-coral-stroke" stroke-width="0.7"/>
+          <text font-family="IBM Plex Sans, sans-serif" font-size="13" font-weight="500" class="sv-coral-text" x="100" y="357" text-anchor="middle" dominant-baseline="central">OpenVPN</text>
+          <text font-family="IBM Plex Sans, sans-serif" font-size="11" class="sv-coral-text" x="100" y="375" text-anchor="middle" fill="#a0502a">TLS, UDP or TCP</text>
+        </g>
+        <!-- SSL VPN -->
+        <g>
+          <rect x="170" y="336" width="120" height="54" rx="7" class="sv-coral-fill sv-coral-stroke" stroke-width="0.7"/>
+          <text font-family="IBM Plex Sans, sans-serif" font-size="13" font-weight="500" class="sv-coral-text" x="230" y="357" text-anchor="middle" dominant-baseline="central">SSL/TLS VPN</text>
+          <text font-family="IBM Plex Sans, sans-serif" font-size="11" class="sv-coral-text" x="230" y="375" text-anchor="middle" fill="#a0502a">Browser-based</text>
+        </g>
+        <!-- SSTP -->
+        <g>
+          <rect x="300" y="336" width="120" height="54" rx="7" class="sv-coral-fill sv-coral-stroke" stroke-width="0.7"/>
+          <text font-family="IBM Plex Sans, sans-serif" font-size="13" font-weight="500" class="sv-coral-text" x="360" y="357" text-anchor="middle" dominant-baseline="central">SSTP</text>
+          <text font-family="IBM Plex Sans, sans-serif" font-size="11" class="sv-coral-text" x="360" y="375" text-anchor="middle" fill="#a0502a">HTTPS port 443</text>
+        </g>
+        <!-- PPTP -->
+        <g>
+          <rect x="430" y="336" width="120" height="54" rx="7" class="sv-red-fill sv-red-stroke" stroke-width="0.7"/>
+          <text font-family="IBM Plex Sans, sans-serif" font-size="13" font-weight="500" class="sv-red-text" x="490" y="357" text-anchor="middle" dominant-baseline="central">PPTP</text>
+          <text font-family="IBM Plex Sans, sans-serif" font-size="11" class="sv-red-text" x="490" y="375" text-anchor="middle" fill="#903030">Deprecated — broken</text>
+        </g>
+        <!-- Legend -->
+        <rect x="40" y="430" width="12" height="12" rx="3" fill="#1D9E75"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="11" fill="#7a7f94" x="58" y="441">Network-layer protocols</text>
+        <rect x="220" y="430" width="12" height="12" rx="3" fill="#D85A30"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="11" fill="#7a7f94" x="238" y="441">Application-layer protocols</text>
+        <rect x="420" y="430" width="12" height="12" rx="3" fill="#378ADD"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="11" fill="#7a7f94" x="438" y="441">VPN types (architecture)</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- SECTION 3: VPN Types -->
+  <section>
+    <h2>VPN Types — the architecture</h2>
+
+    <div class="card">
+      <h3>1. Remote Access VPN</h3>
+      <p>The most common consumer and enterprise use case. A <strong>single user's device</strong> connects to a central VPN gateway (server). All traffic is tunneled through that gateway before reaching the internet or corporate resources. Think: employee working from home connecting to office systems, or a consumer using NordVPN/Mullvad.</p>
+      <p>Client software initiates a tunnel to a VPN concentrator. The user gets an IP address from the corporate/VPN subnet. Traffic is decrypted at the gateway and forwarded onward.</p>
+    </div>
+
+    <div class="card">
+      <h3>2. Site-to-Site VPN</h3>
+      <p>Two entire <strong>networks</strong> are connected together — neither end user does anything. The routers/firewalls at each site handle the tunnel automatically. Used heavily by enterprises linking branch offices to HQ.</p>
+      <p>The edge devices (firewalls, routers) at each site negotiate the tunnel between themselves. Traffic between the two networks is encrypted in transit but users experience it as a flat internal network.</p>
+    </div>
+
+    <div class="card">
+      <h3>3. Client-to-Site</h3>
+      <p>Often used interchangeably with remote access, but more precisely describes a <strong>device</strong> (not a full network) connecting to a corporate <strong>gateway</strong>. The distinction is that it's one endpoint, not two networks, and it's usually policy-driven: split tunneling, MFA, device posture checks.</p>
+    </div>
+
+    <div class="card">
+      <h3>4. MPLS VPN (Provider-managed)</h3>
+      <p>A <strong>telecom carrier</strong> provides the private WAN — you never touch the public internet. The provider's MPLS backbone separates your traffic from other customers using VRFs (Virtual Routing and Forwarding tables). Expensive but very reliable and low-latency. Common in financial services and healthcare.</p>
+    </div>
+
+    <div class="card">
+      <h3>5. Cloud / Mesh / SD-WAN VPN</h3>
+      <p>SD-WAN and cloud-native VPNs (AWS VPN Gateway, Azure VPN Gateway, Cloudflare WARP, Tailscale). The "VPN" here is often a mesh — each node has a tunnel to every other node, and routing is handled by software rather than dedicated hardware. Tailscale builds a WireGuard mesh between all your devices automatically.</p>
+    </div>
+  </section>
+
+  <!-- SECTION 4: Packet encapsulation diagram -->
+  <section>
+    <h2>Packet encapsulation</h2>
+    <p>Before going into each protocol, it helps to see exactly what happens to a packet when IPsec wraps it for transit.</p>
+    <div class="diagram-wrap">
+      <div class="diagram-label">IPsec ESP tunnel mode — before and after</div>
+      <svg width="100%" viewBox="0 0 680 310" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+        <!-- Before label -->
+        <text font-family="IBM Plex Sans, sans-serif" font-size="12" fill="#7a7f94" x="340" y="24" text-anchor="middle">Original packet (before VPN)</text>
+        <!-- Original layers -->
+        <rect x="218" y="32" width="100" height="36" rx="4" class="sv-blue-fill sv-blue-stroke" stroke-width="0.7"/>
+        <text font-family="IBM Plex Mono, monospace" font-size="12" font-weight="500" class="sv-blue-text" x="268" y="54" text-anchor="middle" dominant-baseline="central">IP header</text>
+        <rect x="320" y="32" width="100" height="36" rx="4" class="sv-teal-fill sv-teal-stroke" stroke-width="0.7"/>
+        <text font-family="IBM Plex Mono, monospace" font-size="12" font-weight="500" class="sv-teal-text" x="370" y="54" text-anchor="middle" dominant-baseline="central">TCP / UDP</text>
+        <rect x="422" y="32" width="100" height="36" rx="4" class="sv-coral-fill sv-coral-stroke" stroke-width="0.7"/>
+        <text font-family="IBM Plex Mono, monospace" font-size="12" font-weight="500" class="sv-coral-text" x="472" y="54" text-anchor="middle" dominant-baseline="central">Payload</text>
+        <!-- Arrow + label -->
+        <line x1="340" y1="72" x2="340" y2="106" stroke="rgba(255,255,255,0.25)" stroke-width="1" marker-end="url(#arr2)"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="11" fill="#7a7f94" x="350" y="92">IPsec tunnel mode wraps everything</text>
+        <!-- After label -->
+        <text font-family="IBM Plex Sans, sans-serif" font-size="12" fill="#7a7f94" x="340" y="122" text-anchor="middle">After encapsulation (what the internet sees)</text>
+        <!-- New outer IP -->
+        <rect x="40" y="130" width="92" height="36" rx="4" class="sv-gray-fill sv-gray-stroke" stroke-width="0.7"/>
+        <text font-family="IBM Plex Mono, monospace" font-size="11" font-weight="500" class="sv-gray-text" x="86" y="145" text-anchor="middle" dominant-baseline="central">New IP hdr</text>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="10" fill="#5a5a55" x="86" y="159" text-anchor="middle">Gateway IPs</text>
+        <!-- ESP header -->
+        <rect x="134" y="130" width="76" height="36" rx="4" class="sv-amber-fill sv-amber-stroke" stroke-width="0.7"/>
+        <text font-family="IBM Plex Mono, monospace" font-size="11" font-weight="500" class="sv-amber-text" x="172" y="145" text-anchor="middle" dominant-baseline="central">ESP hdr</text>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="10" fill="#805010" x="172" y="159" text-anchor="middle">SPI + seq</text>
+        <!-- Encrypted zone dashed border -->
+        <rect x="212" y="126" width="358" height="44" rx="4" class="sv-dashed" stroke-width="1"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="10" fill="#4fffb0" x="391" y="118" text-anchor="middle">Encrypted — nobody can read this</text>
+        <!-- Inner payload boxes (inside encrypted zone) -->
+        <rect x="216" y="132" width="76" height="32" rx="3" class="sv-blue-fill sv-blue-stroke" stroke-width="0.5"/>
+        <text font-family="IBM Plex Mono, monospace" font-size="10" class="sv-blue-text" x="254" y="150" text-anchor="middle" dominant-baseline="central">Orig IP</text>
+        <rect x="294" y="132" width="76" height="32" rx="3" class="sv-teal-fill sv-teal-stroke" stroke-width="0.5"/>
+        <text font-family="IBM Plex Mono, monospace" font-size="10" class="sv-teal-text" x="332" y="150" text-anchor="middle" dominant-baseline="central">TCP/UDP</text>
+        <rect x="372" y="132" width="116" height="32" rx="3" class="sv-coral-fill sv-coral-stroke" stroke-width="0.5"/>
+        <text font-family="IBM Plex Mono, monospace" font-size="10" class="sv-coral-text" x="430" y="150" text-anchor="middle" dominant-baseline="central">Payload (data)</text>
+        <!-- ESP trailer -->
+        <rect x="490" y="130" width="80" height="36" rx="4" class="sv-amber-fill sv-amber-stroke" stroke-width="0.7"/>
+        <text font-family="IBM Plex Mono, monospace" font-size="11" font-weight="500" class="sv-amber-text" x="530" y="145" text-anchor="middle" dominant-baseline="central">ESP trl</text>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="10" fill="#805010" x="530" y="159" text-anchor="middle">+ auth tag</text>
+        <!-- Annotations -->
+        <line x1="86" y1="170" x2="86" y2="198" stroke="rgba(255,255,255,0.2)" stroke-width="0.8" marker-end="url(#arr2)"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="11" fill="#7a7f94" x="40" y="214">ISP sees: gateway A → gateway B</text>
+        <line x1="530" y1="170" x2="530" y2="198" stroke="rgba(255,255,255,0.2)" stroke-width="0.8" marker-end="url(#arr2)"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="11" fill="#7a7f94" x="454" y="214">Integrity-protected</text>
+        <!-- Bottom note -->
+        <text font-family="IBM Plex Sans, sans-serif" font-size="11" fill="#7a7f94" x="340" y="262" text-anchor="middle">At VPN gateway: outer header stripped, inner packet decrypted, forwarded normally</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- SECTION 5: Protocols -->
+  <section>
+    <h2>VPN Protocols — the mechanism</h2>
+
+    <div class="card">
+      <h3>IPsec (Internet Protocol Security) <span class="badge badge-green">Recommended</span></h3>
+      <p>The gold standard for network-layer VPNs. IPsec is a <strong>suite</strong> of sub-protocols:</p>
+      <ul style="margin: 0.8rem 0 0.8rem 1.4rem; color: var(--muted);">
+        <li style="margin-bottom:0.5rem"><strong style="color:#e2e4ec">IKE (Internet Key Exchange)</strong> — handles authentication and key negotiation. IKEv1 is old and flawed; IKEv2 is what you deploy today. Phase 1: establish a secure channel (Diffie-Hellman + certificates or PSKs). Phase 2: negotiate data channel parameters.</li>
+        <li style="margin-bottom:0.5rem"><strong style="color:#e2e4ec">ESP (Encapsulating Security Payload)</strong> — provides encryption, integrity, and anti-replay. Uses AES-GCM in modern deployments. This is the workhorse.</li>
+        <li><strong style="color:#e2e4ec">AH (Authentication Header)</strong> — provides integrity only, no encryption. Rarely used because it can't traverse NAT cleanly.</li>
+      </ul>
+      <p>Two modes: <strong>Transport mode</strong> (encrypts only the payload, keeps original IP header) for host-to-host; <strong>Tunnel mode</strong> (wraps the entire original packet) for gateway-to-gateway — the standard VPN scenario.</p>
+      <p style="color: var(--muted); font-size: 0.9rem;">Used in: StrongSwan, Cisco ASA, Palo Alto, AWS VPN Gateway, Azure VPN.</p>
+    </div>
+
+    <div class="card">
+      <h3>GRE (Generic Routing Encapsulation)</h3>
+      <p>GRE alone provides <strong>encapsulation with zero encryption</strong> — it wraps packets in a tunnel header to route across incompatible networks or carry multicast/broadcast traffic (which IPsec can't carry natively). Almost always paired with IPsec: GRE for routing flexibility, IPsec for encryption. Written as GRE-over-IPsec or IPsec-over-GRE (order matters for how crypto is applied).</p>
+    </div>
+
+    <div class="card">
+      <h3>L2TP/IPsec (Layer 2 Tunneling Protocol)</h3>
+      <p>L2TP creates a <strong>Layer 2 tunnel</strong> — it encapsulates PPP frames, allowing it to carry non-IP traffic and assign IPs to remote clients like a dial-up PPP session. L2TP has zero encryption by itself, so it's always paired with IPsec. The dominant Windows/mobile VPN protocol through the 2000s–2010s. Being phased out because it double-encapsulates (L2TP inside IPsec), adding overhead with no performance advantage over IKEv2/IPsec alone.</p>
+    </div>
+
+    <div class="card">
+      <h3>WireGuard <span class="badge badge-green">Modern</span></h3>
+      <p>The newest and architecturally cleanest protocol. Operates in the Linux kernel (since 5.6). Uses only <strong>ChaCha20-Poly1305</strong> for encryption (no algorithm negotiation — fixed cipher eliminates downgrade attacks), <strong>Curve25519</strong> for key exchange, and <strong>BLAKE2s</strong> for hashing. The codebase is ~4,000 lines vs OpenVPN's ~100,000 — dramatically smaller attack surface.</p>
+      <p>Authentication is purely <strong>public key based</strong> — both peers pre-configure each other's public keys (no certificates, no CA). Creates a virtual network interface (e.g. <code style="font-family: var(--mono); font-size: 0.88em; color: var(--accent)">wg0</code>), routing via standard kernel routing tables. Tailscale, Mullvad, and ProtonVPN all use WireGuard under the hood.</p>
+      <p style="color: var(--muted); font-size: 0.9rem;"><strong style="color: var(--amber)">Caveat:</strong> WireGuard doesn't hide that you're using WireGuard (recognizable UDP patterns). By design, the server logs your IP indefinitely until the session expires — Mullvad patches around this.</p>
+    </div>
+
+    <div class="card">
+      <h3>OpenVPN <span class="badge badge-green">Battle-tested</span></h3>
+      <p>A mature protocol built on <strong>OpenSSL/TLS</strong>. Runs over UDP (faster, preferred) or TCP (more reliable through restrictive firewalls). Over TCP port 443 it can disguise itself as HTTPS traffic — very useful in censored environments.</p>
+      <p>Uses a <strong>certificate authority model</strong> — server has a cert, clients have certs, both verify each other. Also supports TLS authentication (an HMAC pre-shared key on top of TLS to prevent unauthorized TLS handshakes — a DoS defense).</p>
+      <p>Slower than WireGuard due to userspace implementation, though DCO (Data Channel Offload) now moves part of it into the kernel. Extremely configurable.</p>
+    </div>
+
+    <div class="card">
+      <h3>SSL/TLS VPN (clientless)</h3>
+      <p>Not the same as OpenVPN. A clientless SSL VPN is typically a <strong>web portal</strong> — you point your browser at <code style="font-family: var(--mono); font-size: 0.88em; color: var(--accent)">https://vpn.company.com</code>, authenticate, and get access to specific internal web apps or RDP sessions through the browser. No client software needed. Cisco AnyConnect, Pulse Secure, and Citrix operate this way.</p>
+    </div>
+
+    <div class="card">
+      <h3>SSTP (Secure Socket Tunneling Protocol)</h3>
+      <p>Microsoft's SSL-based protocol. Tunnels PPP traffic inside HTTPS (port 443), making it very firewall-friendly. Windows-native but practically a Microsoft-only ecosystem.</p>
+    </div>
+
+    <div class="card" style="border-color: rgba(255,107,107,0.3);">
+      <h3>PPTP (Point-to-Point Tunneling Protocol) <span class="badge badge-red">Deprecated</span></h3>
+      <div class="callout" style="margin-top:0.5rem; margin-bottom:0;">
+        <strong class="warn-label">Do not use</strong>
+        MS-CHAPv2, its authentication protocol, is completely broken — offline cracking in hours with commodity hardware. NSA has been known to decrypt it passively. The only reason it still exists is legacy compatibility.
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 6: Matrix diagram -->
+  <section>
+    <h2>Protocol × type matrix</h2>
+    <div class="diagram-wrap">
+      <div class="diagram-label">Where each protocol fits each architecture type</div>
+      <svg width="100%" viewBox="0 0 680 400" xmlns="http://www.w3.org/2000/svg">
+        <!-- Column headers -->
+        <text font-family="IBM Plex Mono, monospace" font-size="11" fill="#7a7f94" letter-spacing="1" x="193" y="36" text-anchor="middle">REMOTE ACCESS</text>
+        <text font-family="IBM Plex Mono, monospace" font-size="11" fill="#7a7f94" letter-spacing="1" x="333" y="36" text-anchor="middle">SITE-TO-SITE</text>
+        <text font-family="IBM Plex Mono, monospace" font-size="11" fill="#7a7f94" letter-spacing="1" x="473" y="36" text-anchor="middle">CLOUD / MESH</text>
+        <text font-family="IBM Plex Mono, monospace" font-size="11" fill="#7a7f94" letter-spacing="1" x="608" y="36" text-anchor="middle">CLIENTLESS</text>
+        <!-- Row labels -->
+        <text font-family="IBM Plex Mono, monospace" font-size="12" font-weight="500" fill="#2dd4bf" x="112" y="84" text-anchor="end" dominant-baseline="central">IPsec IKEv2</text>
+        <text font-family="IBM Plex Mono, monospace" font-size="12" font-weight="500" fill="#2dd4bf" x="112" y="132" text-anchor="end" dominant-baseline="central">WireGuard</text>
+        <text font-family="IBM Plex Mono, monospace" font-size="12" font-weight="500" fill="#e2a070" x="112" y="180" text-anchor="end" dominant-baseline="central">OpenVPN</text>
+        <text font-family="IBM Plex Mono, monospace" font-size="12" font-weight="500" fill="#7a7f94" x="112" y="228" text-anchor="end" dominant-baseline="central">L2TP/IPsec</text>
+        <text font-family="IBM Plex Mono, monospace" font-size="12" font-weight="500" fill="#e2a070" x="112" y="276" text-anchor="end" dominant-baseline="central">SSL/TLS VPN</text>
+        <text font-family="IBM Plex Mono, monospace" font-size="12" font-weight="500" fill="#ff6b6b" x="112" y="324" text-anchor="end" dominant-baseline="central">PPTP</text>
+        <!-- Grid lines -->
+        <line x1="116" y1="48" x2="660" y2="48" stroke="rgba(255,255,255,0.07)" stroke-width="0.7"/>
+        <line x1="116" y1="108" x2="660" y2="108" stroke="rgba(255,255,255,0.07)" stroke-width="0.7"/>
+        <line x1="116" y1="156" x2="660" y2="156" stroke="rgba(255,255,255,0.07)" stroke-width="0.7"/>
+        <line x1="116" y1="204" x2="660" y2="204" stroke="rgba(255,255,255,0.07)" stroke-width="0.7"/>
+        <line x1="116" y1="252" x2="660" y2="252" stroke="rgba(255,255,255,0.07)" stroke-width="0.7"/>
+        <line x1="116" y1="300" x2="660" y2="300" stroke="rgba(255,255,255,0.07)" stroke-width="0.7"/>
+        <line x1="116" y1="348" x2="660" y2="348" stroke="rgba(255,255,255,0.07)" stroke-width="0.7"/>
+        <line x1="116" y1="48" x2="116" y2="350" stroke="rgba(255,255,255,0.07)" stroke-width="0.7"/>
+        <line x1="270" y1="48" x2="270" y2="350" stroke="rgba(255,255,255,0.07)" stroke-width="0.7"/>
+        <line x1="410" y1="48" x2="410" y2="350" stroke="rgba(255,255,255,0.07)" stroke-width="0.7"/>
+        <line x1="548" y1="48" x2="548" y2="350" stroke="rgba(255,255,255,0.07)" stroke-width="0.7"/>
+        <line x1="660" y1="48" x2="660" y2="350" stroke="rgba(255,255,255,0.07)" stroke-width="0.7"/>
+        <!-- IPsec row -->
+        <rect x="120" y="60" width="146" height="40" rx="6" class="sv-teal-fill sv-teal-stroke" stroke-width="0.5"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="12" font-weight="500" class="sv-teal-text" x="193" y="82" text-anchor="middle" dominant-baseline="central">Best choice</text>
+        <rect x="274" y="60" width="132" height="40" rx="6" class="sv-teal-fill sv-teal-stroke" stroke-width="0.5"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="12" font-weight="500" class="sv-teal-text" x="340" y="82" text-anchor="middle" dominant-baseline="central">Best choice</text>
+        <rect x="414" y="60" width="130" height="40" rx="6" class="sv-teal-fill sv-teal-stroke" stroke-width="0.5"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="12" font-weight="500" class="sv-teal-text" x="479" y="82" text-anchor="middle" dominant-baseline="central">Common (AWS)</text>
+        <rect x="552" y="60" width="104" height="40" rx="6" class="sv-gray-fill sv-gray-stroke" stroke-width="0.5"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="12" class="sv-gray-text" x="604" y="82" text-anchor="middle" dominant-baseline="central">N/A</text>
+        <!-- WireGuard row -->
+        <rect x="120" y="110" width="146" height="40" rx="6" class="sv-teal-fill sv-teal-stroke" stroke-width="0.5"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="12" font-weight="500" class="sv-teal-text" x="193" y="132" text-anchor="middle" dominant-baseline="central">Modern clients</text>
+        <rect x="274" y="110" width="132" height="40" rx="6" class="sv-teal-fill sv-teal-stroke" stroke-width="0.5"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="12" font-weight="500" class="sv-teal-text" x="340" y="132" text-anchor="middle" dominant-baseline="central">Growing</text>
+        <rect x="414" y="110" width="130" height="40" rx="6" class="sv-teal-fill sv-teal-stroke" stroke-width="0.5"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="12" font-weight="500" class="sv-teal-text" x="479" y="132" text-anchor="middle" dominant-baseline="central">Tailscale/mesh</text>
+        <rect x="552" y="110" width="104" height="40" rx="6" class="sv-gray-fill sv-gray-stroke" stroke-width="0.5"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="12" class="sv-gray-text" x="604" y="132" text-anchor="middle" dominant-baseline="central">N/A</text>
+        <!-- OpenVPN row -->
+        <rect x="120" y="158" width="146" height="40" rx="6" fill="#1a2a40" stroke="#378ADD" stroke-width="0.5"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="12" font-weight="500" fill="#B5D4F4" x="193" y="180" text-anchor="middle" dominant-baseline="central">Very common</text>
+        <rect x="274" y="158" width="132" height="40" rx="6" fill="#1a2a40" stroke="#378ADD" stroke-width="0.5"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="12" font-weight="500" fill="#B5D4F4" x="340" y="180" text-anchor="middle" dominant-baseline="central">Supported</text>
+        <rect x="414" y="158" width="130" height="40" rx="6" class="sv-gray-fill sv-gray-stroke" stroke-width="0.5"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="12" class="sv-gray-text" x="479" y="180" text-anchor="middle" dominant-baseline="central">Less common</text>
+        <rect x="552" y="158" width="104" height="40" rx="6" class="sv-gray-fill sv-gray-stroke" stroke-width="0.5"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="12" class="sv-gray-text" x="604" y="180" text-anchor="middle" dominant-baseline="central">N/A</text>
+        <!-- L2TP row -->
+        <rect x="120" y="206" width="146" height="40" rx="6" class="sv-amber-fill sv-amber-stroke" stroke-width="0.5"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="12" font-weight="500" class="sv-amber-text" x="193" y="228" text-anchor="middle" dominant-baseline="central">Legacy only</text>
+        <rect x="274" y="206" width="132" height="40" rx="6" class="sv-gray-fill sv-gray-stroke" stroke-width="0.5"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="12" class="sv-gray-text" x="340" y="228" text-anchor="middle" dominant-baseline="central">Rare</text>
+        <rect x="414" y="206" width="130" height="40" rx="6" class="sv-gray-fill sv-gray-stroke" stroke-width="0.5"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="12" class="sv-gray-text" x="479" y="228" text-anchor="middle" dominant-baseline="central">Not used</text>
+        <rect x="552" y="206" width="104" height="40" rx="6" class="sv-gray-fill sv-gray-stroke" stroke-width="0.5"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="12" class="sv-gray-text" x="604" y="228" text-anchor="middle" dominant-baseline="central">N/A</text>
+        <!-- SSL/TLS row -->
+        <rect x="120" y="254" width="146" height="40" rx="6" class="sv-coral-fill sv-coral-stroke" stroke-width="0.5"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="12" font-weight="500" class="sv-coral-text" x="193" y="276" text-anchor="middle" dominant-baseline="central">Portal access</text>
+        <rect x="274" y="254" width="132" height="40" rx="6" class="sv-gray-fill sv-gray-stroke" stroke-width="0.5"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="12" class="sv-gray-text" x="340" y="276" text-anchor="middle" dominant-baseline="central">N/A</text>
+        <rect x="414" y="254" width="130" height="40" rx="6" class="sv-coral-fill sv-coral-stroke" stroke-width="0.5"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="12" font-weight="500" class="sv-coral-text" x="479" y="276" text-anchor="middle" dominant-baseline="central">ZTNA / SASE</text>
+        <rect x="552" y="254" width="104" height="40" rx="6" class="sv-coral-fill sv-coral-stroke" stroke-width="0.5"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="12" font-weight="500" class="sv-coral-text" x="604" y="276" text-anchor="middle" dominant-baseline="central">Primary use</text>
+        <!-- PPTP row -->
+        <rect x="120" y="302" width="146" height="40" rx="6" class="sv-red-fill sv-red-stroke" stroke-width="0.5"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="12" font-weight="500" class="sv-red-text" x="193" y="324" text-anchor="middle" dominant-baseline="central">Avoid — broken</text>
+        <rect x="274" y="302" width="132" height="40" rx="6" class="sv-red-fill sv-red-stroke" stroke-width="0.5"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="12" font-weight="500" class="sv-red-text" x="340" y="324" text-anchor="middle" dominant-baseline="central">Avoid</text>
+        <rect x="414" y="302" width="130" height="40" rx="6" class="sv-gray-fill sv-gray-stroke" stroke-width="0.5"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="12" class="sv-gray-text" x="479" y="324" text-anchor="middle" dominant-baseline="central">Not used</text>
+        <rect x="552" y="302" width="104" height="40" rx="6" class="sv-gray-fill sv-gray-stroke" stroke-width="0.5"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="12" class="sv-gray-text" x="604" y="324" text-anchor="middle" dominant-baseline="central">N/A</text>
+        <!-- Legend -->
+        <rect x="120" y="362" width="10" height="10" rx="2" fill="#1D9E75"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="11" fill="#7a7f94" x="136" y="371">Best / common</text>
+        <rect x="260" y="362" width="10" height="10" rx="2" fill="#BA7517"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="11" fill="#7a7f94" x="276" y="371">Legacy</text>
+        <rect x="340" y="362" width="10" height="10" rx="2" fill="#A32D2D"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="11" fill="#7a7f94" x="356" y="371">Avoid</text>
+        <rect x="420" y="362" width="10" height="10" rx="2" fill="#444441"/>
+        <text font-family="IBM Plex Sans, sans-serif" font-size="11" fill="#7a7f94" x="436" y="371">Not applicable</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- SECTION 7: Key concepts -->
+  <section>
+    <h2>Key concepts that tie it all together</h2>
+
+    <div class="card">
+      <h3>Split tunneling vs full tunnel</h3>
+      <p>In <strong>full tunnel</strong> mode, all traffic from the client goes through the VPN — including YouTube, Netflix, everything. In <strong>split tunnel</strong> mode, only traffic destined for specific subnets (e.g. <code style="font-family: var(--mono); font-size: 0.88em; color: var(--accent)">10.0.0.0/8</code>) goes through the VPN; everything else exits directly to the internet. Split tunneling saves bandwidth on the VPN gateway but means your non-corporate traffic isn't protected. An attacker on your local network can still intercept non-tunneled traffic.</p>
+    </div>
+
+    <div class="card">
+      <h3>Perfect Forward Secrecy (PFS)</h3>
+      <p>A critical property of modern VPN protocols. Each session negotiates a fresh ephemeral Diffie-Hellman key pair. If the long-term private key is ever compromised, past sessions remain protected because those session keys were never stored. IKEv2, WireGuard, and OpenVPN all support PFS. PPTP does not.</p>
+    </div>
+
+    <div class="card">
+      <h3>MTU and fragmentation</h3>
+      <p>Adding VPN headers reduces usable packet size. A typical Ethernet MTU is 1500 bytes; IPsec ESP adds ~50–70 bytes of overhead. If you don't configure the MSS (Maximum Segment Size) correctly on the VPN interface, you'll get silent packet drops and degraded TCP performance. WireGuard handles this better than most.</p>
+    </div>
+
+    <div class="card">
+      <h3>NAT traversal</h3>
+      <p>IPsec was designed before NAT was pervasive. AH breaks when a NAT device changes the IP header (because AH protects it). The fix is <strong>NAT-T</strong> — wrapping IPsec ESP packets inside UDP port 4500, which NAT devices can handle. IKEv2 detects NAT and switches to UDP 4500 automatically. WireGuard is UDP-native and traverses NAT cleanly by design.</p>
+    </div>
+
+    <div class="callout tip">
+      <strong>Where the industry is heading</strong>
+      <strong>Zero Trust Network Access (ZTNA)</strong> — Traditional VPNs grant broad network access once authenticated. ZTNA (Cloudflare Access, Zscaler, Palo Alto Prisma) inverts this: access is granted per-application, per-session, based on identity, device posture, and context. The "VPN" becomes a per-request proxy rather than a persistent tunnel.
+    </div>
+  </section>
+
+  <!-- SECTION 8: Decision table -->
+  <section>
+    <h2>Decision framework</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Scenario</th>
+            <th>Recommendation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Enterprise site-to-site</td>
+            <td class="ok">IPsec IKEv2 — AES-256-GCM + SHA-384</td>
+          </tr>
+          <tr>
+            <td>Modern remote access (endpoint VPN)</td>
+            <td class="ok">WireGuard or IKEv2/IPsec</td>
+          </tr>
+          <tr>
+            <td>Censorship circumvention / firewall bypass</td>
+            <td class="ok">OpenVPN over TCP 443 or obfuscated WireGuard</td>
+          </tr>
+          <tr>
+            <td>Legacy Windows-only environment</td>
+            <td class="warn">SSTP or IKEv2</td>
+          </tr>
+          <tr>
+            <td>Personal device mesh (home lab, team)</td>
+            <td class="ok">Tailscale (WireGuard underneath)</td>
+          </tr>
+          <tr>
+            <td>Web app access without client software</td>
+            <td class="ok">SSL/TLS VPN portal</td>
+          </tr>
+          <tr>
+            <td>Someone recommends PPTP</td>
+            <td class="bad">Hard no — broken by design</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout info" style="margin-top: 1.5rem;">
+      <strong>Throughput order</strong>
+      Fastest → slowest on modern hardware at the same cipher strength:<br><br>
+      WireGuard &gt; IPsec (hardware offload) &gt; OpenVPN (DCO) &gt; OpenVPN (userspace) &gt; L2TP/IPsec<br><br>
+      WireGuard saturates gigabit links on a Raspberry Pi. OpenVPN struggles on the same hardware.
+    </div>
+  </section>
+
+  <footer>
+    <span>VPN Technical Reference</span>
+    <span>IPsec · WireGuard · OpenVPN · L2TP · SSL/TLS · PPTP</span>
+  </footer>
+
+</div>
+</body>
+</html>
